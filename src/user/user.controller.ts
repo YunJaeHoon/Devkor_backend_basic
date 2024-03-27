@@ -12,12 +12,6 @@ export class UserController
     return this.userService.getUsers();
   }
 
-  @Get("/:index")
-  getUserName(@Param('index') index: number): string
-  {
-    return this.userService.getUserName(index);
-  }
-
   @Post()
   async addUser(@Body() info): Promise<string[]>
   {
@@ -28,6 +22,12 @@ export class UserController
   deleteUser(@Body() info): Promise<string[]>
   {
     return this.userService.deleteUser(info.name);
+  }
+
+  @Get("/:index")
+  getUserName(@Param('index') index: number): string
+  {
+    return this.userService.getUserName(index);
   }
 
 }
