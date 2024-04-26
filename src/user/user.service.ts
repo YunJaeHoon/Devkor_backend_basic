@@ -1,38 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from 'src/entities';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService
 {
-  // UserService 클래스의 필드
-  users: string[] = ['KYJ', 'LJW', 'KHS'];
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
 
-  getUsers(): string[]
+  async getUsers(): Promise<UserEntity[]>
   {
-    return this.users;
+    const users = await this.userRepository.find();
+    return users;
   }
 
-  async addUser(name: string): Promise<string[]>
+  async findByEmail(email: string): Promise<UserEntity>
   {
-    if(!this.users.includes(name))
+    const user = await this.userRepository.findOne({ where: {email} });
+    return user;
+  }
+
+  async addUser(info: UserEntity): Promise<UserEntity | void>
+  {
+    if(!(await this.findByEmail(info.email)))
     {
-      await this.users.push(name);
+      const user = this.userRepository.create(info);
+      return await this.userRepository.save(user);
     }
-
-    return this.users;
-  }
-
-  async deleteUser(name: string): Promise<string[]>
-  {
-    if(this.users.includes(name))
+    else
     {
-      await this.users.splice(this.users.indexOf(name), 1);
+      throw new HttpException('user already exists', 409);
     }
-
-    return this.users;
   }
 
-  getUserName(index: number): string
+  async deleteUser(email: string): Promise<void>
   {
-    return this.users[index];
+    if(await this.findByEmail(email))
+    {
+      await this.userRepository.delete({email});
+    }
+    else
+    {
+      throw new HttpException('user not found', 404);
+    }
+  }
+
+  async updatePassword(email: string, password: string): Promise<void>
+  {
+    if(await this.findByEmail(email))
+    {
+      await this.userRepository.update({ email }, { password });
+    }
+    else
+    {
+      throw new HttpException('user not found', 404);
+    }
   }
 }
