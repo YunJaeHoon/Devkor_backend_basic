@@ -1,3 +1,4 @@
+import { Rank } from "src/commons/enums/rank.enum";
 import { 
   Column,
   CreateDateColumn,
@@ -19,6 +20,9 @@ export class UserEntity {
 
   @Column()
   name: string;
+
+  @Column({ type: 'enum', enum: Rank, default: Rank.Bronze })
+  rank: Rank;
 
   @Column({ nullable: true })
   image?: string;
